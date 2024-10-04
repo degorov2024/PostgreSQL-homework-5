@@ -5,13 +5,9 @@ Base = declarative_base()
 
 class Publisher(Base):
     __tablename__ = "publisher"
-
     id = sq.Column(sq.Integer, primary_key=True)
     name = sq.Column(sq.String(length=100), unique=True)
     #т.к., к примеру, для отчетов ПФР в названиях организаций ограничение 100 символов
-
-    # def __str__(self):
-    #     return f'{self.id}: {self.name}'
 
 class Book(Base):
     __tablename__ = "book"
@@ -20,12 +16,10 @@ class Book(Base):
     #Пример - Собрание сочинений в 12 томах. Том 1. Пять недель на воздушном шаре. С земли на луну. Вокруг луны (сборник)
     #не уникально, т.к. могут быть переиздания, выпуски др. издательствами...
     id_publisher = sq.Column(sq.Integer, sq.ForeignKey("publisher.id"), nullable = False)
-
-    publisher = relationship(Publisher, backref="book") #--------------------------------backref="books"?
+    publisher = relationship(Publisher, backref="book")
 
 class Shop(Base):
     __tablename__ = "shop"
-
     id = sq.Column(sq.Integer, primary_key=True)
     name = sq.Column(sq.String(length=100), unique=True)
 
@@ -35,7 +29,6 @@ class Stock(Base):
     count = sq.Column(sq.Integer, nullable=False, default=0)
     id_book = sq.Column(sq.Integer, sq.ForeignKey("book.id"), nullable = False)
     id_shop = sq.Column(sq.Integer, sq.ForeignKey("shop.id"), nullable = False)
-
     book = relationship(Book, backref="stock")
     shop = relationship(Shop, backref="stock")
 
@@ -46,7 +39,6 @@ class Sale(Base):
     date_sale = sq.Column(sq.DateTime, nullable=False)
     id_stock = sq.Column(sq.Integer, sq.ForeignKey("stock.id"), nullable = False)
     count = sq.Column(sq.Integer, nullable=False)
-
     stock = relationship(Stock, backref="sale")
 
 def create_tables(engine):
