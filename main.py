@@ -2,7 +2,8 @@ import json
 import psycopg2
 import sqlalchemy
 from sqlalchemy.orm import sessionmaker
-from models import create_tables, delete_all_tables, Publisher, Book, Shop, Stock, Sale
+from models import (create_tables, delete_all_tables, Publisher, Book, Shop, 
+                    Stock, Sale)
 
 # Получение данных для подключения к БД
 def enter_db_user_credentials():
@@ -33,23 +34,21 @@ def import_data_to_bd(file):
 # Вывод данных в формате:
 # название книги | название магазина | стоимость покупки | дата покупки
 def show_shops_by_publisher(publisher_name):
-    #все книги конкретного издателя
-    sq1 = session.query(Publisher).filter(Publisher.name == publisher_name).subquery()
-    q1 = session.query(Book).join(sq1, Book.id_publisher == sq1.c.id)
-    for b in q1.all():
-        #магазины, в которых есть конкретная книга
-        q2 = session.query(Shop).join(Stock.shop).filter(Stock.id_book == b.id)
-        for sh in q2.all():
-            #продажи книги из инвентаря магазина
-            sq2 = session.query(Stock).filter(Stock.id_book == b.id, 
-                                              Stock.id_shop == sh.id).subquery()
-            q3 = session.query(Sale).join(sq2, Sale.id_stock == sq2.c.id)
-            for sl in q3.all():
-                str_book_title = '{:<40}'.format(b.title)
-                str_shop_name = '{:<12}'.format(sh.name)
-                str_price = '{:<6}'.format(str(sl.price))
-                print(f'{str_book_title} | {str_shop_name} | {str_price} \
-| {sl.date_sale}')
+    q_shops = (session.query(Book.title, Shop.name, Sale.price, Sale.date_sale)
+               .select_from(Shop).join(Stock).join(Book).join(Publisher)
+               .join(Sale))
+    #Проверка, id на входе или название издателя
+    if publisher_name.isdigit():
+        q_result = q_shops.filter(Publisher.id == publisher_name).all()
+    else:
+        q_result = q_shops.filter(Publisher.name == publisher_name).all()
+    #Вывод данных, если они есть
+    if q_result == []:
+        print('Ничего не найдено...')
+    else:
+        for book, shop, price, sold_date in q_result:
+            print(f"{book: <40} | {shop: <12} | {price: <8} | "
+                  f"{sold_date.strftime('%d-%m-%Y')}")
 
 
 #Подключение к БД, создание сессии
@@ -67,15 +66,10 @@ create_tables(engine)
 #Наполнение таблиц данными
 import_data_to_bd('fixtures/tests_data.json')
 
-print('Введите имя издателя:')
+print('Введите имя издателя или его id:')
 publisher = str(input())
 print('-----')
 show_shops_by_publisher(publisher)
-
-# publishers = ['O’Reilly','Pearson', 'Microsoft Press', 'No starch press']
-# for publisher in publishers:
-#     show_shops_by_publisher(publisher)
-#     print('-----')
 
 session.commit()
 session.close()
