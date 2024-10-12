@@ -9,11 +9,11 @@ from models import (create_tables, delete_all_tables, Publisher, Book, Shop,
 def enter_db_user_credentials():
     print('Введите название базы данных PostgreSQL.\nБудьте внимательны! \
 Из БД будут предварительно удалены ВСЕ таблицы!')
-    db = str(input())
+    db = input()
     print('Введите логин для доступа к БД:')
-    user = str(input())
+    user = input()
     print('Введите пароль:')
-    password = str(input())   
+    password = input()   
     return db, user, password
 
 # Импорт данных в БД из файла json
@@ -67,7 +67,7 @@ create_tables(engine)
 import_data_to_bd('fixtures/tests_data.json')
 
 print('Введите имя издателя или его id:')
-publisher = str(input())
+publisher = input()
 print('-----')
 show_shops_by_publisher(publisher)
 
